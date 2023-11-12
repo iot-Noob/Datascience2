@@ -103,7 +103,7 @@ class pdf_handler:
                 self.currentPage=page 
                 self.scrape_text() ## Scrap txt and save it as txt
                 self.Scrap_Images() #scrap images and save it on same dir
-                self.OCR_Image_Obj() #OCR extracted miages from PDF at same time
+                #self.OCR_Image_Obj(language='en') #OCR extracted miages from PDF at same time
                 pass
             
         except Exception as e:
@@ -167,10 +167,10 @@ class pdf_handler:
             self.logs(f'\n{self.formatted_datetime} {self._mbp} derive path = {self.stfp} has error {efe}\n','Errorlogs')
             print("Error save file , ",efe)
  
-    def OCR_Image_Obj(self,psm=11,oem=3): ##OCR imageas object from PDF
+    def OCR_Image_Obj(self,psm=11,oem=3,language="en"): ##OCR imageas object from PDF
         try:
             my_config = f"--psm {psm} --oem {oem}"
-            txt = pytesseract.image_to_string(self._cur_img, config=my_config,lang='eng')
+            txt = pytesseract.image_to_string(self._cur_img, config=my_config,lang=language)
             self.save_txt_file(txt,'OCR')
       
 
@@ -180,10 +180,10 @@ class pdf_handler:
             print("Error save file , ",oce)
             raise oce
         
-    def OCR_Image(self,path,psm=11,oem=3): ##OCR imageas  form path
+    def OCR_Image(self,path,psm=11,oem=3,language="eng"): ##OCR imageas  form path
         try:
             my_config = f"--psm {psm} --oem {oem}"
-            txt = pytesseract.image_to_string(path, config=my_config,lang='eng')
+            txt = pytesseract.image_to_string(path, config=my_config,lang=language)
             self.save_txt_file(txt,'OCR')
       
 
@@ -236,6 +236,7 @@ if __name__=="__main__":
     cfp=r'PDF'
 
     try:
+        print("Welcome to main ")
         m1=Main(cfp)
         m1.Pdf_Main()
         #m1.save_csv({"name":"talha","age":28},['name','age'],'.','talha')
