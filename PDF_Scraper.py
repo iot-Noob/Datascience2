@@ -85,12 +85,21 @@ class pdf_handler:
                         self.ReadPDF()
         except Exception as r:
             print("Error read pdf ,",r)
- 
+            self.logs(f'\n{self.formatted_datetime} Read all pdf togather Error!!  {r}\n','Errorlogs')
+            
             raise r
-     
- 
+        
+    def get_single_pdf(self, path):  # Triverse through  Single PDF and extract txt and images and OCR them.
+        try:
+            self.Croot = os.path.dirname(path)
+            self.Fname = os.path.basename(path)
+            self._mdp, self._mbp = os.path.split(path)  # Corrected assignment
+            self.ReadPDF()
 
-  
+        except Exception as r:
+            print("Error read pdf ,", r)
+            raise r
+
 
     def ReadPDF(self): ## Open and read entire PDF and scrap images text and also OCR it
         try:
@@ -233,12 +242,13 @@ class Main(pdf_handler):
     
  
 if __name__=="__main__":
-    cfp=r'PDF'
+    cfp=r'3.pdf'
 
     try:
         print("Welcome to main ")
         m1=Main(cfp)
-        m1.Pdf_Main()
+        #m1.Pdf_Main()
+        m1.get_single_pdf(cfp)
         #m1.save_csv({"name":"talha","age":28},['name','age'],'.','talha')
         #m1.Single_PDF('1.pdf')
     except Exception as ef:
