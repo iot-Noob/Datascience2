@@ -1,11 +1,26 @@
-import os
-from PyPDF2 import PdfReader
-import io
-from PIL import Image
-import matplotlib as plt
-from difflib import SequenceMatcher
-import csv
-from datetime import datetime
+try:
+    import os
+    from PyPDF2 import PdfReader
+    import io
+    from PIL import Image
+    import matplotlib as plt
+    from difflib import SequenceMatcher
+    import csv
+    from datetime import datetime
+except ImportError as e:
+    print(f"Error importing a required module: {e}")
+    print("Attempting to install missing libraries...")
+
+    try:
+        import subprocess
+        subprocess.run(["pip", "install", "PyPDF2", "Pillow", "matplotlib"])
+        print("Libraries installed successfully.")
+    except Exception as install_error:
+        print(f"Error installing libraries: {install_error}")
+        print("Please install the required libraries manually.")
+
+# Now you can use the libraries
+
 
 class pdf_handler:
     
@@ -24,12 +39,13 @@ class pdf_handler:
         self.current_datetime = datetime.now()
         self.formatted_datetime=self.current_datetime.strftime("%Y-%m-%d %H:%M:%S")
         self.cur_img_fo=None
+ 
         pass
     #to get all pdf list form dir user define
 
     def logs(self,txt,filenames):
         try:
-            if os.path.exists('logs'):
+            if os.path.exists(f'logs'):
                 with open(f'logs/{filenames}.txt','a',encoding='utf-8') as lft:
                     lft.write(txt)
              
@@ -57,27 +73,21 @@ class pdf_handler:
         
         try:
             for root,_,files in os.walk(self.path):
-             self.Croot=root
-             for f in files:
-                 self.Fname=f
-                 bp=os.path.join(root,f)
-                 if(bp.endswith('.pdf')):
-                     dp=os.path.split(bp)
-                     self._mdp=dp
-                     self._mbp=bp
-                     self.ReadPDF()
-        except FileExistsError as  fef:
-            
-            print("No such file or pdf exists")
-            self.logs(f'\n{self.formatted_datetime} File not Exist Error {fef}\n','Errorlogs')
-        except FileNotFoundError as fnfe:
-            print("No pdf in current dir")
-            self.logs(f'\n{self.formatted_datetime} File not Found Error {fef}\n','Errorlogs')
+                self.Croot=root
+                for f in files:
+                    self.Fname=f
+                    bp=os.path.join(root,f)
+                    if(bp.endswith('.pdf')):
+                        dp=os.path.split(bp)
+                        self._mdp=dp
+                        self._mbp=bp
+                        self.ReadPDF()
+        except Exception as r:
+            print("Error read pdf ,",r)
  
+            raise r
  
- 
-
-    
+  
 
     def ReadPDF(self): ## Open and read entire PDF
         try:
@@ -88,14 +98,15 @@ class pdf_handler:
                 self.cpno=pno 
                 ##save page in golbal private variable of class
                 self.currentPage=page 
-                #self.scrape_text()
+                self.scrape_text()
                 self.Scrap_Images()
                 pass
             
         except Exception as e:
             print("Read PDF error ",e)
             self.logs(f'\n{self.formatted_datetime} Read PDF error {e} from {self._mbp}\n','Errorlogs')
-            pass
+            raise e
+  
     def Scrap_Images(self): ##Extract images from every page of PDF
         try:
             self.stip=os.path.join(self.Croot,os.path.splitext(self.Fname)[0]+f"_Page_No_{self.cpno}.png")
@@ -103,14 +114,16 @@ class pdf_handler:
                 self.cur_img_fo=ifo
                 img=Image.open(io.BytesIO(ifo.data))
                 img.save(self.stip,quality=42)
-    
-                
-                pass         
+                self.logs(f'\n{self.formatted_datetime} {self._mbp} save image  as {self.stip}\n','logs')
+                print(f"Save image from base path pdf {self._mbp} image {self.stip} ")
+
+      
  
         except Exception as sir:
 
             print("Scrap image from PDF  error ",sir)
             self.logs(f'\n{self.formatted_datetime} Scrape image error form PDF {sir} from {self._mbp}\n','Errorlogs')
+            raise sir
 
         pass
 
@@ -160,8 +173,11 @@ class Main(pdf_handler):
 
         pass
  
-cfp=r'../PDF'
+cfp=r'PDF'
 
-m1=Main(cfp)
-m1.Pdf_Main()
+try:
+    m1=Main(cfp)
+    m1.Pdf_Main()
+except Exception as ef:
+    print("Some error occur ",ef)
  
