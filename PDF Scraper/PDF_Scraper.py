@@ -216,12 +216,13 @@ class Main(pdf_handler):
         return true_positive_char_num/len(ground_value)
     
  
-cfp=r'PDF'
+if __name__=="__main__":
+    cfp=r'PDF'
 
-try:
-    m1=Main(cfp)
-    m1.Pdf_Main()
- 
-except Exception as ef:
-    print("Some error occur ",ef)
+    try:
+        m1=Main(cfp)
+        m1.Pdf_Main()
+    
+    except Exception as ef:
+        print("Some error occur ",ef)
  
