@@ -1,5 +1,6 @@
 try:
     import os
+    import pytesseract
     from PyPDF2 import PdfReader
     import io
     from PIL import Image
@@ -13,7 +14,7 @@ except ImportError as e:
 
     try:
         import subprocess
-        subprocess.run(["pip", "install", "PyPDF2", "Pillow", "matplotlib"])
+        subprocess.run(["pip", "install", "PyPDF2", "Pillow", "matplotlib","pytesseract"])
         print("Libraries installed successfully.")
     except Exception as install_error:
         print(f"Error installing libraries: {install_error}")
@@ -35,10 +36,10 @@ class pdf_handler:
         self.currentPage=None ## current page of PDF
         self.pdfextxt=None ## extracted pdf txt
         self.Fname=None # current File name
-        self.Croot=None
-        self.current_datetime = datetime.now()
+        self.Croot=None #Variable for root file path
+        self.current_datetime = datetime.now() #get cfurrent date and time
         self.formatted_datetime=self.current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-        self.cur_img_fo=None
+        self.cur_img_fo=None## image file object flobal variable extract form PDF
  
         pass
     #to get all pdf list form dir user define
@@ -89,7 +90,7 @@ class pdf_handler:
  
   
 
-    def ReadPDF(self): ## Open and read entire PDF
+    def ReadPDF(self): ## Open and read entire PDF and scrap images text and also OCR it
         try:
             reader=PdfReader(self._mbp)
             self._reader=reader
@@ -98,8 +99,8 @@ class pdf_handler:
                 self.cpno=pno 
                 ##save page in golbal private variable of class
                 self.currentPage=page 
-                self.scrape_text()
-                self.Scrap_Images()
+                self.scrape_text() ## Scrap txt and save it as txt
+                self.Scrap_Images() #scrap images and save it on same dir
                 pass
             
         except Exception as e:
@@ -116,10 +117,11 @@ class pdf_handler:
                 img.save(self.stip,quality=42)
                 self.logs(f'\n{self.formatted_datetime} {self._mbp} save image  as {self.stip}\n','logs')
                 print(f"Save image from base path pdf {self._mbp} image {self.stip} ")
-
+ 
       
  
         except Exception as sir:
+ 
 
             print("Scrap image from PDF  error ",sir)
             self.logs(f'\n{self.formatted_datetime} Scrape image error form PDF {sir} from {self._mbp}\n','Errorlogs')
@@ -133,8 +135,8 @@ class pdf_handler:
 
         pass
 
-    def extract_text(self):
-        try:
+    def extract_text(self): # extract text form PDF
+        try: 
             self.pdfextxt=self.currentPage.extract_text()
             pass
         except FileExistsError as fer:
@@ -147,7 +149,7 @@ class pdf_handler:
         except Exception as ce:
             print("Scrape text error!! ",ce)
             pass
-    def save_txt_file(self,data):
+    def save_txt_file(self,data): ## Save thifs as output on same path as txt
         try:
             
             self.stfp=os.path.join(self.Croot,os.path.splitext(self.Fname)[0]+f"_Page_No_{self.cpno}.txt")
@@ -161,23 +163,41 @@ class pdf_handler:
             self.logs(f'\n{self.formatted_datetime} {self._mbp} derive path = {self.stfp} has error {efe}\n','Errorlogs')
             print("Error save file , ",efe)
  
- 
+    def OCR_Image(self): ##OCR imageas object from PDF
+        
+        pass
 
 class Main(pdf_handler):
     def __init__(self, path):
         super().__init__(path)
+ 
     pass
 
     def Pdf_Main(self):
-        self.get_all_pdf()
-
-        pass
+        try:
+            self.get_all_pdf()
+        except Exception as e:
+            print("Some class main error ",e)
+    
+    def measure_accuracy(self,ocr_value,ground_value):
+   
+        sm = SequenceMatcher(None, ocr_value, ground_value)
+        true_positive_char_num = 0
+        for tag, i1, i2, j1, j2 in sm.get_opcodes():
+            if tag== 'equal':
+                true_positive_char_num += (j2 - j1)
+            else:
+                pass
+        
+        return true_positive_char_num/len(ground_value)
+    
  
 cfp=r'PDF'
 
 try:
     m1=Main(cfp)
-    m1.Pdf_Main()
+    #m1.Pdf_Main()
+ 
 except Exception as ef:
     print("Some error occur ",ef)
  
