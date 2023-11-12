@@ -70,7 +70,7 @@ class pdf_handler:
  
 
 
-    def get_all_pdf(self): 
+    def get_all_pdf(self):  #Triverse through given folder and exteract al data form all pdfs
         
         try:
             for root,_,files in os.walk(self.path):
@@ -87,7 +87,9 @@ class pdf_handler:
             print("Error read pdf ,",r)
  
             raise r
+     
  
+
   
 
     def ReadPDF(self): ## Open and read entire PDF and scrap images text and also OCR it
@@ -194,15 +196,17 @@ class pdf_handler:
 class Main(pdf_handler):
     def __init__(self, path):
         super().__init__(path)
+        self.stfp = None  # Initialize stfp attribute
  
     pass
 
-    def Pdf_Main(self):
+    def Pdf_Main(self):## main reader to get data form all pdf files
         try:
             self.get_all_pdf()
         except Exception as e:
             print("Some class main error ",e)
-    
+ 
+        
     def measure_accuracy(self,ocr_value,ground_value): ##meausre and return accuracy from OCR and Ground values
    
         sm = SequenceMatcher(None, ocr_value, ground_value)
@@ -233,9 +237,9 @@ if __name__=="__main__":
 
     try:
         m1=Main(cfp)
-        #m1.Pdf_Main()
+        m1.Pdf_Main()
         #m1.save_csv({"name":"talha","age":28},['name','age'],'.','talha')
-    
+        #m1.Single_PDF('1.pdf')
     except Exception as ef:
         print("Some error occur ",ef)
  
