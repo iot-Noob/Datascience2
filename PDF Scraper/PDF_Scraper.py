@@ -40,7 +40,7 @@ class pdf_handler:
         self.current_datetime = datetime.now() #get cfurrent date and time
         self.formatted_datetime=self.current_datetime.strftime("%Y-%m-%d %H:%M:%S")
         self.cur_img_fo=None## image file object flobal variable extract form PDF
- 
+        self._cur_img=None #File obj to image coonverted 
         pass
     #to get all pdf list form dir user define
 
@@ -101,6 +101,7 @@ class pdf_handler:
                 self.currentPage=page 
                 self.scrape_text() ## Scrap txt and save it as txt
                 self.Scrap_Images() #scrap images and save it on same dir
+                self.OCR_Image_Obj() #OCR extracted miages from PDF at same time
                 pass
             
         except Exception as e:
@@ -113,7 +114,8 @@ class pdf_handler:
             self.stip=os.path.join(self.Croot,os.path.splitext(self.Fname)[0]+f"_Page_No_{self.cpno}.png")
             for ifo in self.currentPage.images:
                 self.cur_img_fo=ifo
-                img=Image.open(io.BytesIO(ifo.data))
+                img=Image.open(io.BytesIO(ifo.data))## Convert image file obj to image
+                self._cur_img=img
                 img.save(self.stip,quality=42)
                 self.logs(f'\n{self.formatted_datetime} {self._mbp} save image  as {self.stip}\n','logs')
                 print(f"Save image from base path pdf {self._mbp} image {self.stip} ")
@@ -149,10 +151,10 @@ class pdf_handler:
         except Exception as ce:
             print("Scrape text error!! ",ce)
             pass
-    def save_txt_file(self,data): ## Save thifs as output on same path as txt
+    def save_txt_file(self,data,cin=None): ## Save thifs as output on same path as txt
         try:
             
-            self.stfp=os.path.join(self.Croot,os.path.splitext(self.Fname)[0]+f"_Page_No_{self.cpno}.txt")
+            self.stfp=os.path.join(self.Croot,os.path.splitext(self.Fname)[0]+f"{cin} _Page_No_{self.cpno}.txt")
             print(self.stfp)
             with open(self.stfp,'w',encoding='utf-8') as sf:
                 sf.write(data)
@@ -163,9 +165,31 @@ class pdf_handler:
             self.logs(f'\n{self.formatted_datetime} {self._mbp} derive path = {self.stfp} has error {efe}\n','Errorlogs')
             print("Error save file , ",efe)
  
-    def OCR_Image(self): ##OCR imageas object from PDF
+    def OCR_Image_Obj(self,psm=11,oem=3): ##OCR imageas object from PDF
+        try:
+            my_config = f"--psm {psm} --oem {oem}"
+            txt = pytesseract.image_to_string(self._cur_img, config=my_config,lang='eng')
+            self.save_txt_file(txt,'OCR')
+      
+
+        except Exception as oce:
+            print("OCR Error",oce)
+            self.logs(f'\n{self.formatted_datetime} {self._mbp} OCR Error {oce}\n','Errorlogs')
+            print("Error save file , ",oce)
+            raise oce
         
-        pass
+    def OCR_Image(self,path,psm=11,oem=3): ##OCR imageas  form path
+        try:
+            my_config = f"--psm {psm} --oem {oem}"
+            txt = pytesseract.image_to_string(path, config=my_config,lang='eng')
+            self.save_txt_file(txt,'OCR')
+      
+
+        except Exception as oce:
+            print("OCR Error",oce)
+            self.logs(f'\n{self.formatted_datetime} {self._mbp} OCR Error {oce}\n','Errorlogs')
+            print("Error save file , ",oce)
+            raise oce
 
 class Main(pdf_handler):
     def __init__(self, path):
@@ -196,7 +220,7 @@ cfp=r'PDF'
 
 try:
     m1=Main(cfp)
-    #m1.Pdf_Main()
+    m1.Pdf_Main()
  
 except Exception as ef:
     print("Some error occur ",ef)
