@@ -1,4 +1,5 @@
 try:
+    import cv2
     import os
     import pytesseract
     from PyPDF2 import PdfReader
@@ -24,8 +25,7 @@ except ImportError as e:
 
 
 class pdf_handler:
-    
-
+ 
 
     def __init__(self,path):
         self._mdp=None
@@ -83,6 +83,7 @@ class pdf_handler:
                         self._mdp=dp
                         self._mbp=bp
                         self.ReadPDF()
+                    
         except Exception as r:
             print("Error read pdf ,",r)
             self.logs(f'\n{self.formatted_datetime} Read all pdf togather Error!!  {r}\n','Errorlogs')
@@ -189,7 +190,7 @@ class pdf_handler:
             print("Error save file , ",oce)
             raise oce
         
-    def OCR_Image(self,path,psm=11,oem=3,language="eng"): ##OCR imageas  form path
+    def OCR_Image(self,path,psm=11,oem=3,language="en"): ##OCR imageas  form path
         try:
             my_config = f"--psm {psm} --oem {oem}"
             txt = pytesseract.image_to_string(path, config=my_config,lang=language)
@@ -201,6 +202,9 @@ class pdf_handler:
             self.logs(f'\n{self.formatted_datetime} {self._mbp} OCR Error {oce}\n','Errorlogs')
             print("Error save file , ",oce)
             raise oce
+#------------------------------------------------------------------
+
+#main Function call functions form parent class
 
 class Main(pdf_handler):
     def __init__(self, path):
@@ -239,7 +243,30 @@ class Main(pdf_handler):
         except Exception as e:
             print("Error save CSV ",e)
             self.logs(f'\n{self.formatted_datetime} Save CSV error  {e}\n','Errorlogs')
-    
+
+    def ip_cam_feed(self,url): #Experimental IP cam feed
+        ip_camera_url = url
+
+        # Open the video stream
+        cap = cv2.VideoCapture(ip_camera_url)
+
+        while True:
+            # Read a frame from the video stream
+            ret, frame = cap.read()
+            
+
+            # Display the frame
+            cv2.imshow('IP Camera Stream', frame)
+            
+
+            # Break the loop if the 'q' key is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the video capture object and close the window
+        cap.release()
+        cv2.destroyAllWindows()
+
  
 if __name__=="__main__":
     cfp=r'3.pdf'
